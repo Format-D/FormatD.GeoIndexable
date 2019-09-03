@@ -5,7 +5,7 @@
     "license": "MIT",
     "require": {
         "neos/flow": "*",
-        "flowpack/elasticsearch": "^2.0"
+        "flowpack/elasticsearch": ">=2.0"
     },
     "suggest": {
         "neos/neos": "This Package provides a GeoIndexable Mixin for Neos (NOT YET BUT SOON)"
