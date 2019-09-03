@@ -1,0 +1,8 @@
+
+FormatD:
+  GeoIndexable:
+    geoIndexService:
+      nominatimBaseUri: 'http://nominatim.openstreetmap.org/'
+      geonamesEnable: true
+      geonamesBaseUri: 'http://api.geonames.org/'
+      geonamesUsername: ''

@@ -1,0 +1,23 @@
+{
+    "name": "formatd/geoindexable",
+    "description": "Service for fetching geo-information for addresses in Neos Flow projects (using nominatim/openstreatmap and geonames api)",
+    "type": "neos-package",
+    "license": "MIT",
+    "require": {
+        "neos/flow": "*",
+        "flowpack/elasticsearch": "^2.0"
+    },
+    "suggest": {
+        "neos/neos": "This Package provides a GeoIndexable Mixin for Neos (NOT YET BUT SOON)"
+    },
+    "autoload": {
+        "psr-4": {
+            "FormatD\\GeoIndexable\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "FormatD.GeoIndexable"
+        }
+    }
+}

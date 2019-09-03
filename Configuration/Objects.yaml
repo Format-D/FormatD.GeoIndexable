@@ -1,0 +1,10 @@
+
+FormatD\GeoIndexable\Aspect\RequestCachingAspect:
+  properties:
+    requestCache:
+      object:
+        factoryObjectName: Neos\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: FormatDGeoIndexable_RequestCache

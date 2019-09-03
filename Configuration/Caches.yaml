@@ -1,0 +1,5 @@
+
+FormatDGeoIndexable_RequestCache:
+  frontend: Neos\Cache\Frontend\StringFrontend
+  backend: Neos\Cache\Backend\SimpleFileBackend
+  persistent: false
