@@ -85,15 +85,7 @@ trait GeoIndexableTrait {
 	 * @param string $locationAddress
 	 */
 	public function setLocationAddress($locationAddress) {
-		if (strlen($locationAddress) > 1) {
-			$this->geoIndexService->indexAddress($locationAddress);
-			$this->geoIndexService->setLocationDataOnObject($this);
-		} else {
-			$this->setLocationLabel('');
-			$this->setLocationLatitude(NULL);
-			$this->setLocationLongitude(NULL);
-			$this->setLocationTimezone(NULL);
-		}
+		$this->onLocationChange($locationAddress);
 		$this->locationAddress = $locationAddress;
 	}
 
@@ -153,6 +145,22 @@ trait GeoIndexableTrait {
 	 */
 	public function setLocationTimezone($locationTimezone) {
 		$this->locationTimezone = $locationTimezone;
+	}
+
+
+	/**
+	 * @param string $locationAddress
+	 */
+	protected function onLocationChange($locationAddress){
+		if (strlen($locationAddress) > 1) {
+			$this->geoIndexService->indexAddress($locationAddress);
+			$this->geoIndexService->setLocationDataOnObject($this);
+		} else {
+			$this->setLocationLabel('');
+			$this->setLocationLatitude(NULL);
+			$this->setLocationLongitude(NULL);
+			$this->setLocationTimezone(NULL);
+		}
 	}
 
 }

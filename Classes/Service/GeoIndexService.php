@@ -144,5 +144,12 @@ class GeoIndexService {
 		return NULL;
 	}
 
+    /**
+     * @return array
+     */
+    public function getResultData(){
+        return $this->resultData;
+    }
+
 }
 ?>
