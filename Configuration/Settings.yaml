@@ -6,3 +6,5 @@ FormatD:
       geonamesEnable: true
       geonamesBaseUri: 'http://api.geonames.org/'
       geonamesUsername: ''
+      googleBaseUri: 'https://maps.googleapis.com/maps/api/'
+      googleApiKey: ''

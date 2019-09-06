@@ -1,7 +1,8 @@
 
 # FormatD.GeoIndexable
 
-Service for fetching geo-information for addresses in Neos Flow projects (using nominatim/openstreatmap and geonames api)
+Service for fetching geo-information for addresses in Neos Flow projects. By default, it uses the nominatim/openstreatmap and geonames API,
+but you can use Google API, too.
 
 
 ## What does it do?
@@ -20,4 +21,12 @@ FormatD:
     geoIndexService:
       geonamesEnable: true
       geonamesUsername: ''
+```
+
+In case you want to use the Google API, you have to provide your API Key
+```
+FormatD:
+  GeoIndexable:
+    geoIndexService:
+      googleApiKey: ''
 ```
