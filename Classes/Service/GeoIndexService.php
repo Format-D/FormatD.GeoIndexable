@@ -5,6 +5,8 @@ namespace FormatD\GeoIndexable\Service;
  * This file is part of the FormatD.GeoIndexable package.
  */
 
+use FormatD\GeoIndexable\Domain\LocationData;
+use FormatD\GeoIndexable\Domain\Service\AbstractGeoIndexingService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Neos\Exception;
 
@@ -20,36 +22,6 @@ class GeoIndexService {
 	 * @var \Neos\Flow\Configuration\ConfigurationManager
 	 */
 	protected $configurationManager;
-
-	/**
-	 * @var string
-	 */
-	protected $nominatimBaseUri;
-
-	/**
-	 * @var boolean
-	 */
-	protected $geonamesEnable;
-
-	/**
-	 * @var string
-	 */
-	protected $geonamesBaseUri;
-
-	/**
-	 * @var string
-	 */
-	protected $geonamesUsername;
-
-	/**
-	 * @var string
-	 */
-	protected $googleBaseUri;
-
-	/**
-	 * @var string
-	 */
-	protected $googleApiKey;
 
 	/**
 	 * @Flow\Inject
@@ -71,95 +43,76 @@ class GeoIndexService {
 	protected $resultData = NULL;
 
 	/**
+	 * @var array<AbstractGeoIndexingService>
+	 */
+	protected $services = [];
+
+	/**
+	 * @var \Neos\Flow\ObjectManagement\ObjectManagerInterface
+	 */
+	protected $objectManager;
+
+	/**
+	 * GeoIndexService constructor.
+	 * @param \Neos\Flow\ObjectManagement\ObjectManagerInterface $objectManager
+	 */
+	public function __construct(\Neos\Flow\ObjectManagement\ObjectManagerInterface $objectManager) {
+		$this->objectManager = $objectManager;
+	}
+
+	/**
 	 * init node context
 	 */
 	public function initializeObject() {
 		$this->requestEngine->setOption(CURLOPT_TIMEOUT, 15);
 		$this->browser->setRequestEngine($this->requestEngine);
 
-		$conf = $this->configurationManager->getConfiguration(\Neos\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'FormatD.GeoIndexable.geoIndexService');
-		$this->nominatimBaseUri = $conf['nominatimBaseUri'];
-		$this->geonamesEnable = $conf['geonamesEnable'];
-		$this->geonamesBaseUri = $conf['geonamesBaseUri'];
-		$this->geonamesUsername = $conf['geonamesUsername'];
-		$this->googleBaseUri = $conf['googleBaseUri'];
-		$this->googleApiKey = $conf['googleApiKey'];
-	}
+		$conf = $this->configurationManager->getConfiguration(\Neos\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'FormatD.GeoIndexable');
+		//TODO: check yaml felder if NULL etc.
 
-	/**
-	 * @param $address
-	 * @param string $serviceToUse
-	 * @return bool
-	 * @throws Exception
-	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
-	 */
-	public function indexAddress($address, $serviceToUse = 'nominatim') {
-		switch ($serviceToUse) {
-			case 'google':
-				$indexedAddress = $this->indexWithGoogle($address);
-				break;
-			default:
-				$indexedAddress = $this->indexWithNomination($address);
-		}
-		return $indexedAddress;
-	}
-
-	/**
-	 * @param $address
-	 * @return bool
-	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
-	 */
-	public function indexWithNomination($address)
-	{
-		$uri = $this->nominatimBaseUri . 'search?format=json&addressdetails=1&accept-language=en&q=' . urlencode($address);
-		$geoData = json_decode($this->sendRequest($uri));
-		if ($geoData && array_key_exists(0, $geoData)) {
-			if ($this->geonamesEnable && isset($geoData[0]->lon)) {
-				$timeZoneServiceUrl = $this->geonamesBaseUri . "timezoneJSON?lat=" . $geoData[0]->lat . "&lng=".$geoData[0]->lon . "&username=" . $this->geonamesUsername;
-				$timeZone = json_decode($this->sendRequest($timeZoneServiceUrl), true);
-				$geoData[0]->timezone = $timeZone['timezoneId'];
+		foreach($conf['services'] as $serviceName=>$serviceConf){
+			$serviceClass = $serviceConf['serviceClass'];
+			if(class_exists($serviceClass)){
+				$this->services[$serviceName] = $this->objectManager->get($serviceClass);
+				$this->services[$serviceName]->setOptions($serviceConf['options']);
+			}else{
+				//TODO: Errormeldung
 			}
-			$this->resultData = $geoData[0];
-			return TRUE;
 		}
-		return FALSE;
 	}
 
 	/**
+	 * @param LocationData $locationData
 	 * @param $address
-	 * @return bool
-	 * @throws Exception
-	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
+	 * @return LocationData|null
 	 */
-	public function indexWithGoogle($address)
-	{
-		if(!$this->googleApiKey){
-			throw new Exception('Please specify your Google Api Key!', 1567771297);
+	public function indexByAddress(LocationData $locationData, $address){
+		$geoService = $this->getServiceWithDetails($locationData->getDetails());
+		if(!$geoService){
+			return NULL;
 		}
-		$formattedAddr = str_replace(' ','+', $address);
-		$uri = $this->googleBaseUri . 'geocode/json?address='.$formattedAddr.'&key='.$this->googleApiKey;
-		$geoData = json_decode($this->browser->request($uri)->getContent());
-
-		if ($geoData &&  array_key_exists(0, $geoData->results)) {
-			$this->resultData = $geoData->results[0]->geometry;
-			return TRUE;
-		}
-		return FALSE;
+		return $geoService->indexByAddress($locationData, $address);
 	}
 
 	/**
-	 * @param $uri
-	 * @return string
-	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
+	 * @param $details
+	 * @return AbstractGeoIndexingService|null
 	 */
-	protected function sendRequest($uri) {
-		$response = $this->browser->request($uri);
-		return $response->getContent();
+	protected function getServiceWithDetails($details){
+		$geoService = NULL;
+		foreach($this->services as $service){
+			if($service->providesDetails($details)){
+				$geoService = $service;
+				break;
+			}
+		}
+		return $geoService;
 	}
 
 	/**
 	 * @param $object
 	 */
+	/*
 	public function setLocationDataOnObject($object) {
 		if (isset($this->resultData->location->lng)) {
 			$object->setLocationLatitude($this->resultData->location->lat);
@@ -185,35 +138,5 @@ class GeoIndexService {
 			$object->setLocationLabel('');
 		}
 	}
-
-	/**
-	 * @return float
-	 */
-	public function getLongitude() {
-		if (isset($this->resultData->location->lng)) {
-			return $this->resultData->location->lng;
-		} elseif (isset($this->resultData->lon)) {
-			return $this->resultData->lon;
-		}
-		return NULL;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getLatitude() {
-		if (isset($this->resultData->location->lat)) {
-			return $this->resultData->location->lat;
-		} elseif (isset($this->resultData->lat)) {
-			return $this->resultData->lat;
-		}
-		return NULL;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getResultData(){
-		return $this->resultData;
-	}
+	*/
 }
