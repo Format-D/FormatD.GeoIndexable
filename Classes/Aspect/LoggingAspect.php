@@ -23,6 +23,6 @@ class LoggingAspect
 	 */
 	public function logIndexByAddress(JoinPointInterface $joinPoint) {
 		$className = $joinPoint->getClassName();
-		echo 'Indexing by address with class: '.$className."\n";
+		// echo 'Indexing by address with class: '.$className."\n";
 	}
 }

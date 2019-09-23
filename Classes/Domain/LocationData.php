@@ -32,7 +32,7 @@ class LocationData implements LocationDataDetails
 	 */
 	public function getDetail($name){
 		if(!in_array($name, $this->getDetails())){
-			throw new Exception('detail "'.$name.'" not available');
+			throw new \Exception('detail "'.$name.'" not available');
 		}
 		return $this->$name;
 	}
@@ -43,7 +43,7 @@ class LocationData implements LocationDataDetails
 	 */
 	public function __set($name, $value) {
 		if(!in_array($name, $this->getDetails())){
-			throw new Exception('detail "'.$name.'" not available');
+			throw new \Exception('detail "'.$name.'" not available');
 		}
 		$this->$name = $value;
 	}

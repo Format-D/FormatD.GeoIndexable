@@ -6,6 +6,7 @@ use FormatD\GeoIndexable\Domain\LocationData;
 use FormatD\GeoIndexable\Domain\LocationDataDepr;
 use FormatD\GeoIndexable\Domain\LocationDataDetails;
 use FormatD\GeoIndexable\Domain\LocationDataInterface;
+use FormatD\NeosUtilities\Eel\Helper\StringHelper;
 use Neos\Flow\Annotations as Flow;
 
 /**
@@ -38,7 +39,27 @@ abstract class AbstractGeoIndexingService
 	 * @param string $address
 	 * @return LocationData|null
 	 */
-	abstract public function indexByAddress(LocationData $locationData, string $address): ?LocationData;
+	public function indexByAddress(LocationData $locationData, string $address): ?LocationData{
+		$result = $this->getResultFromAddress($address);
+		return $this->setResultToLocationData($locationData, $result);
+	}
+
+	/**
+	 * Get the raw result as string for the address
+	 *
+	 * @param $address
+	 * @return String
+	 */
+	abstract protected function getResultFromAddress($address): String;
+
+	/**
+	 * Maps the processed result to the provided LocationData-Object. Return NULL on invalid data
+	 *
+	 * @param $locationData
+	 * @param $result
+	 * @return LocationData|null
+	 */
+	abstract protected function setResultToLocationData($locationData, $result): ?LocationData;
 
 	/**
 	 * @param $detail string

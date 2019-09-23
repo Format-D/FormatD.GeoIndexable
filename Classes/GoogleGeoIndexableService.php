@@ -11,6 +11,7 @@ use Neos\Flow\Annotations as Flow;
 use FormatD\GeoIndexable\Domain\Service\AbstractGeoIndexingService;
 use Neos\Flow\Http\Client\Browser;
 use Neos\Flow\Http\Client\CurlEngine;
+use Neos\FluidAdaptor\Tests\Functional\Form\Fixtures\Domain\Model\Location;
 use Neos\Neos\Exception;
 
 /**
@@ -47,13 +48,51 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 	}
 
 	/**
-	 * @param LocationData $locationData
-	 * @param string $address
-	 * @return LocationData|null
+	 * @param $locationData
+	 * @param $result
+	 * @return mixed
+	 * @throws Exception
+	 */
+	protected function setResultToLocationData($locationData, $result): ?LocationData {
+		$geoData = json_decode($result);
+		if (!$geoData || !array_key_exists(0, $geoData)) {
+			return NULL;
+		}
+		$data = $geoData->results[0];
+		$addressData = $this->getAddressDataFromAddressComponents($data->address_components);
+
+		foreach($locationData->getDetails() as $detailName){
+			switch ($detailName){
+				case LocationDataDetails::LATITUDE:
+					$locationData->latitude = $data->geometry->location->lat;
+					break;
+				case LocationDataDetails::LONGITUDE:
+					$locationData->longitude = $data->geometry->location->lng;
+					break;
+				case LocationDataDetails::CITY:
+					$locationData->city = $addressData['city'];
+					break;
+				case LocationDataDetails::LABEL:
+					$locationData->label = $data->formatted_address;
+					break;
+				case LocationDataDetails::COUNTRY:
+					$locationData->country = $addressData['country'];
+					break;
+				default:
+					throw new Exception('detail not supported');
+					break;
+			}
+		}
+		return $locationData;
+	}
+
+	/**
+	 * @param $address
+	 * @return |null
 	 * @throws Exception
 	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
 	 */
-	public function indexByAddress(LocationData $locationData, string $address): ?LocationData {
+	protected function getResultFromAddress($address): String {
 		$apiKey = $this->options['apiKey'];
 
 		if(!$apiKey){
@@ -61,41 +100,10 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 		}
 		$formattedAddr = str_replace(' ','+', $address);
 		$uri = $this->options['baseUri'].'geocode/json?address='.$formattedAddr.'&key='.$apiKey;
-		$geoData = json_decode($this->browser->request($uri)->getContent());
-
-		if ($geoData &&  array_key_exists(0, $geoData->results)) {
-			$ret = $geoData->results[0];
-
-			$addressData = $this->getAdressDataFromAddressComponents($ret->address_components);
-
-			foreach($locationData->getDetails() as $detailName){
-				switch ($detailName){
-					case LocationDataDetails::LATITUDE:
-						$locationData->latitude = $ret->geometry->location->lat;
-						break;
-					case LocationDataDetails::LONGITUDE:
-						$locationData->longitude = $ret->geometry->location->lng;
-						break;
-					case LocationDataDetails::CITY:
-						$locationData->city = $addressData['city'];
-						break;
-					case LocationDataDetails::LABEL:
-						$locationData->label = $ret->formatted_address;
-						break;
-					case LocationDataDetails::COUNTRY:
-						$locationData->country = $addressData['country'];
-						break;
-					default:
-						throw new Exception('detail not supported');
-						break;
-				}
-			}
-			return $locationData;
-		}
-		return NULL;
+		return $this->browser->request($uri)->getContent();
 	}
 
-	protected function getAdressDataFromAddressComponents($components){
+	protected function getAddressDataFromAddressComponents($components){
 		$address = [];
 		foreach($components as $component){
 			if(in_array('country', $component['types'])){

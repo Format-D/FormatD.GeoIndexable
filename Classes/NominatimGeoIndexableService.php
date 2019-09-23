@@ -59,46 +59,53 @@ class NominatimGeoIndexableService extends AbstractGeoIndexingService
 		return $response->getContent();
 	}
 
+	/**
+	 * @param $address
+	 * @return String
+	 * @throws \Neos\Flow\Http\Client\InfiniteRedirectionException
+	 */
+	protected function getResultFromAddress($address): String {
+		$uri = $this->options['baseUri'] . 'search?format=json&addressdetails=1&accept-language=en&q=' . urlencode($address);
+		return $this->sendRequest($uri);
+	}
 
 	/**
-	 * @param LocationData $locationData
-	 * @param string $address
+	 * @param $locationData
+	 * @param $result
 	 * @return LocationData|null
 	 */
-	public function indexByAddress(LocationData $locationData, string $address): ?LocationData {
-		$uri = $this->options['baseUri'] . 'search?format=json&addressdetails=1&accept-language=en&q=' . urlencode($address);
-		$geoData = json_decode($this->sendRequest($uri), true);
-		if ($geoData && array_key_exists(0, $geoData)) {
-			$ret = $geoData[0];
-
-			foreach($locationData->getDetails() as $detailName){
-				switch ($detailName){
-					case LocationDataDetails::LATITUDE:
-						$locationData->latitude = $ret['lat'];
-						break;
-					case LocationDataDetails::LONGITUDE:
-						$locationData->longitude = $ret['lon'];
-						break;
-					case LocationDataDetails::CITY:
-						$locationData->city = isset($ret['address']['city']) ? $ret['address']['city'] : $ret['address']['county'];
-						break;
-					case LocationDataDetails::LABEL:
-						$locationData->label = $ret['display_name'];
-						break;
-					case LocationDataDetails::COUNTRY:
-						$locationData->country = $ret['address']['country'];
-						break;
-					case LocationDataDetails::BOUNDINGBOX:
-						$locationData->boundingbox = $ret['boundingbox'];
-						break;
-					default:
-						throw new Exception('detail not supported');
-						break;
-				}
-			}
-
-			return $locationData;
+	protected function setResultToLocationData($locationData, $result): ?LocationData {
+		$geoData = json_decode($result, true);
+		if (!$geoData || !array_key_exists(0, $geoData)) {
+			return NULL;
 		}
-		return NULL;
+		$data = $geoData[0];
+		foreach($locationData->getDetails() as $detailName){
+			switch ($detailName){
+				case LocationDataDetails::LATITUDE:
+					$locationData->latitude = $data['lat'];
+					break;
+				case LocationDataDetails::LONGITUDE:
+					$locationData->longitude = $data['lon'];
+					break;
+				case LocationDataDetails::CITY:
+					$locationData->city = isset($data['address']['city']) ? $data['address']['city'] : $data['address']['county'];
+					break;
+				case LocationDataDetails::LABEL:
+					$locationData->label = $data['display_name'];
+					break;
+				case LocationDataDetails::COUNTRY:
+					$locationData->country = $data['address']['country'];
+					break;
+				case LocationDataDetails::BOUNDINGBOX:
+					$locationData->boundingbox = $data['boundingbox'];
+					break;
+				default:
+					throw new Exception('detail not supported');
+					break;
+			}
+		}
+		return $locationData;
 	}
+
 }
