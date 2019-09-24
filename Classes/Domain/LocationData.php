@@ -2,7 +2,8 @@
 
 
 namespace FormatD\GeoIndexable\Domain;
-
+use Doctrine\ORM\Mapping as ORM;
+use Neos\Flow\Annotations as Flow;
 
 class LocationData implements LocationDataDetails
 {
@@ -16,7 +17,12 @@ class LocationData implements LocationDataDetails
 	 * @param $requiredDetails
 	 */
 	public function __construct($requiredDetails) {
-		$this->details = $requiredDetails;
+		//$this->details = $requiredDetails;
+		$this->details = array_combine($requiredDetails, array_pad([], count($requiredDetails), ''));
+	}
+
+	public function getRequiredDetails(){
+		return array_keys($this->getDetails());
 	}
 
 	/**
@@ -28,23 +34,28 @@ class LocationData implements LocationDataDetails
 
 	/**
 	 * @param $name
-	 * @return mixed
+	 * @return bool
 	 */
-	public function getDetail($name){
-		if(!in_array($name, $this->getDetails())){
-			throw new \Exception('detail "'.$name.'" not available');
-		}
-		return $this->$name;
+	public function hasDetail($name){
+		return array_key_exists($name, $this->getDetails());
 	}
 
 	/**
 	 * @param $name
-	 * @param $value
+	 * @return mixed
 	 */
-	public function __set($name, $value) {
-		if(!in_array($name, $this->getDetails())){
-			throw new \Exception('detail "'.$name.'" not available');
+	public function getDetail($name){
+		if(!$this->hasDetail($name)){
+			return NULL;
 		}
-		$this->$name = $value;
+		return $this->details[$name];
+	}
+
+	public function setDetail($name, $value){
+		if(!$this->hasDetail($name)){
+			return false;
+		}
+		$this->details[$name] = $value;
+		return true;
 	}
 }

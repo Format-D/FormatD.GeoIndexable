@@ -59,7 +59,7 @@ abstract class AbstractGeoIndexingService
 	 * @param $result
 	 * @return LocationData|null
 	 */
-	abstract protected function setResultToLocationData($locationData, $result): ?LocationData;
+	abstract protected function setResultToLocationData(LocationData $locationData, $result): ?LocationData;
 
 	/**
 	 * @param $detail string

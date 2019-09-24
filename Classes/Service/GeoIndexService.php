@@ -24,25 +24,6 @@ class GeoIndexService {
 	protected $configurationManager;
 
 	/**
-	 * @Flow\Inject
-	 * @var \Neos\Flow\Http\Client\Browser
-	 */
-	protected $browser;
-
-	/**
-	 * @Flow\Inject
-	 * @var \Neos\Flow\Http\Client\CurlEngine
-	 */
-	protected $requestEngine;
-
-	/**
-	 * The result of last index-call
-	 *
-	 * @var array
-	 */
-	protected $resultData = NULL;
-
-	/**
 	 * @var array<AbstractGeoIndexingService>
 	 */
 	protected $services = [];
@@ -64,9 +45,6 @@ class GeoIndexService {
 	 * init node context
 	 */
 	public function initializeObject() {
-		$this->requestEngine->setOption(CURLOPT_TIMEOUT, 15);
-		$this->browser->setRequestEngine($this->requestEngine);
-
 		$conf = $this->configurationManager->getConfiguration(\Neos\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'FormatD.GeoIndexable');
 		//TODO: check yaml felder if NULL etc.
 
@@ -87,7 +65,7 @@ class GeoIndexService {
 	 * @return LocationData|null
 	 */
 	public function indexByAddress(LocationData $locationData, $address){
-		$geoService = $this->getServiceWithDetails($locationData->getDetails());
+		$geoService = $this->getServiceWithDetails($locationData->getRequiredDetails());
 		if(!$geoService){
 			return NULL;
 		}
@@ -109,34 +87,4 @@ class GeoIndexService {
 		return $geoService;
 	}
 
-	/**
-	 * @param $object
-	 */
-	/*
-	public function setLocationDataOnObject($object) {
-		if (isset($this->resultData->location->lng)) {
-			$object->setLocationLatitude($this->resultData->location->lat);
-			$object->setLocationLongitude($this->resultData->location->lng);
-		}
-
-		// Nominatim
-		if (isset($this->resultData->lon)) {
-			$object->setLocationLatitude($this->resultData->lat);
-			$object->setLocationLongitude($this->resultData->lon);
-			if (isset($this->resultData->timezone) && $this->resultData->timezone) {
-				$object->setLocationTimezone($this->resultData->timezone);
-			}
-		}
-		if (isset($this->resultData->address)) {
-			$object->setLocationLabel(
-				(isset($this->resultData->address->city) ? $this->resultData->address->city . ', ' :
-					(isset($this->resultData->address->town) ? $this->resultData->address->town . ', ' :
-						(isset($this->resultData->address->village) ? $this->resultData->address->village . ', ' : '')))
-				. $this->resultData->address->country
-			);
-		} else {
-			$object->setLocationLabel('');
-		}
-	}
-	*/
 }

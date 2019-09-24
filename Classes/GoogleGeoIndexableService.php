@@ -53,7 +53,7 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 	 * @return mixed
 	 * @throws Exception
 	 */
-	protected function setResultToLocationData($locationData, $result): ?LocationData {
+	protected function setResultToLocationData(LocationData $locationData, $result): ?LocationData {
 		$geoData = json_decode($result);
 		if (!$geoData || !array_key_exists(0, $geoData)) {
 			return NULL;
@@ -61,25 +61,26 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 		$data = $geoData->results[0];
 		$addressData = $this->getAddressDataFromAddressComponents($data->address_components);
 
-		foreach($locationData->getDetails() as $detailName){
+		foreach($locationData->getRequiredDetails() as $detailName){
 			switch ($detailName){
 				case LocationDataDetails::LATITUDE:
-					$locationData->latitude = $data->geometry->location->lat;
+					$locationData->setDetail($detailName, $data->geometry->location->lat);
 					break;
 				case LocationDataDetails::LONGITUDE:
-					$locationData->longitude = $data->geometry->location->lng;
+					$locationData->setDetail($detailName, $data->geometry->location->lng);
 					break;
 				case LocationDataDetails::CITY:
-					$locationData->city = $addressData['city'];
+					$locationData->setDetail($detailName, $addressData['city']);
 					break;
 				case LocationDataDetails::LABEL:
-					$locationData->label = $data->formatted_address;
+					$locationData->setDetail($detailName, $data->formatted_address);
 					break;
 				case LocationDataDetails::COUNTRY:
-					$locationData->country = $addressData['country'];
+					$locationData->setDetail($detailName, $addressData['country']);
 					break;
 				default:
-					throw new Exception('detail not supported');
+					echo  "Detail '".$detailName."' not supported\n";
+					return NULL;
 					break;
 			}
 		}

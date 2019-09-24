@@ -74,34 +74,36 @@ class NominatimGeoIndexableService extends AbstractGeoIndexingService
 	 * @param $result
 	 * @return LocationData|null
 	 */
-	protected function setResultToLocationData($locationData, $result): ?LocationData {
+	protected function setResultToLocationData(LocationData $locationData, $result): ?LocationData {
 		$geoData = json_decode($result, true);
 		if (!$geoData || !array_key_exists(0, $geoData)) {
 			return NULL;
 		}
 		$data = $geoData[0];
-		foreach($locationData->getDetails() as $detailName){
+		foreach($locationData->getRequiredDetails() as $detailName){
 			switch ($detailName){
 				case LocationDataDetails::LATITUDE:
-					$locationData->latitude = $data['lat'];
+					$locationData->setDetail($detailName, $data['lat']);
 					break;
 				case LocationDataDetails::LONGITUDE:
-					$locationData->longitude = $data['lon'];
+					$locationData->setDetail($detailName, $data['lon']);
 					break;
 				case LocationDataDetails::CITY:
-					$locationData->city = isset($data['address']['city']) ? $data['address']['city'] : $data['address']['county'];
+					$value = isset($data['address']['city']) ? $data['address']['city'] : $data['address']['county'];
+					$locationData->setDetail($detailName, $value);
 					break;
 				case LocationDataDetails::LABEL:
-					$locationData->label = $data['display_name'];
+					$locationData->setDetail($detailName, $data['display_name']);
 					break;
 				case LocationDataDetails::COUNTRY:
-					$locationData->country = $data['address']['country'];
+					$locationData->setDetail($detailName, $data['address']['country']);
 					break;
 				case LocationDataDetails::BOUNDINGBOX:
-					$locationData->boundingbox = $data['boundingbox'];
+					$locationData->setDetail($detailName, $data['boundingbox']);
 					break;
 				default:
-					throw new Exception('detail not supported');
+					echo  "Detail '".$detailName."' not supported\n";
+					return NULL;
 					break;
 			}
 		}
