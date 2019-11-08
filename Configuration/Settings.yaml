@@ -3,15 +3,18 @@ FormatD:
   GeoIndexable:
     services:
       google:
+        enabled: false
         serviceClass: 'FormatD\GeoIndexable\GoogleGeoIndexableService'
         options:
           baseUri: 'https://maps.googleapis.com/maps/api/'
           apiKey: 'ichbineinapikey'
       nominatim:
+        enabled: true
         serviceClass: 'FormatD\GeoIndexable\NominatimGeoIndexableService'
         options:
           baseUri: 'http://nominatim.openstreetmap.org/'
       geonames:
+        enabled: false
         serviceClass: ''
         options:
           baseUri: 'http://api.geonames.org/'

@@ -50,7 +50,7 @@ class GeoIndexService {
 
 		foreach($conf['services'] as $serviceName=>$serviceConf){
 			$serviceClass = $serviceConf['serviceClass'];
-			if(class_exists($serviceClass)){
+			if($serviceConf['enabled'] && class_exists($serviceClass)){
 				$this->services[$serviceName] = $this->objectManager->get($serviceClass);
 				$this->services[$serviceName]->setOptions($serviceConf['options']);
 			}else{
