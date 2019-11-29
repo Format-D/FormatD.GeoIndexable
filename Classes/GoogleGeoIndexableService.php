@@ -101,7 +101,7 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 		}
 		$formattedAddr = str_replace(' ','+', $address);
 		$uri = $this->options['baseUri'].'geocode/json?address='.$formattedAddr.'&key='.$apiKey;
-		return $this->browser->request($uri)->getContent();
+		return $this->browser->request($uri)->getBody()->getContents();
 	}
 
 	protected function getAddressDataFromAddressComponents($components){

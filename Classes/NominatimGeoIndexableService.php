@@ -56,7 +56,7 @@ class NominatimGeoIndexableService extends AbstractGeoIndexingService
 	 */
 	protected function sendRequest($uri){
 		$response = $this->browser->request($uri);
-		return $response->getContent();
+		return $response->getBody()->getContents();
 	}
 
 	/**
