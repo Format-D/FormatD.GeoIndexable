@@ -1,9 +1,9 @@
 <?php
-
-
 namespace FormatD\GeoIndexable\Domain;
 
-
+/**
+ * Supported Location Details
+ */
 interface LocationDataDetails
 {
 	/**

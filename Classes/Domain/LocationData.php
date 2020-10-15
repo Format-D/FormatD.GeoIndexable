@@ -5,6 +5,9 @@ namespace FormatD\GeoIndexable\Domain;
 use Doctrine\ORM\Mapping as ORM;
 use Neos\Flow\Annotations as Flow;
 
+/**
+ * @Flow\Scope("prototype")
+ */
 class LocationData implements LocationDataDetails
 {
 	/**
@@ -13,14 +16,15 @@ class LocationData implements LocationDataDetails
 	protected $details;
 
 	/**
-	 * LocationData constructor.
-	 * @param $requiredDetails
+	 * @param array $requiredDetails
 	 */
 	public function __construct($requiredDetails) {
-		//$this->details = $requiredDetails;
 		$this->details = array_combine($requiredDetails, array_pad([], count($requiredDetails), ''));
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getRequiredDetails(){
 		return array_keys($this->getDetails());
 	}
@@ -33,7 +37,7 @@ class LocationData implements LocationDataDetails
 	}
 
 	/**
-	 * @param $name
+	 * @param string $name
 	 * @return bool
 	 */
 	public function hasDetail($name){
@@ -51,6 +55,11 @@ class LocationData implements LocationDataDetails
 		return $this->details[$name];
 	}
 
+	/**
+	 * @param string $name
+	 * @param mixed $value
+	 * @return bool (true if successful and false if no detail was found)
+	 */
 	public function setDetail($name, $value){
 		if(!$this->hasDetail($name)){
 			return false;
