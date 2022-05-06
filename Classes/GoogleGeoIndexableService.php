@@ -54,7 +54,7 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 	 * @throws Exception
 	 */
 	protected function setResultToLocationData(LocationData $locationData, $result): ?LocationData {
-		$geoData = json_decode($result);
+		$geoData = json_decode($result, true);
 		if (!$geoData || !array_key_exists(0, $geoData)) {
 			return NULL;
 		}
