@@ -19,13 +19,14 @@ class RequestCachingAspect {
 	protected $requestCache;
 
 	/**
-	 * @Flow\Around("method(FormatD\GeoIndexable\Service\GeoIndexService->sendRequest(.*))")
+	 * @Flow\Around("method(.*->getResultFromAddress(.*)) && within(FormatD\GeoIndexable\Domain\Service\AbstractGeoIndexingService)")
 	 * @param JoinPointInterface $joinPoint The current joinpoint
 	 * @return string
 	 */
-	public function cacheRequests(JoinPointInterface $joinPoint) {
-
-		$cacheIdentifier = md5($joinPoint->getMethodArgument('uri'));
+	public function cacheResultFromAddress(JoinPointInterface $joinPoint){
+		$address = $joinPoint->getMethodArgument('address');
+		$className = $joinPoint->getClassName();
+		$cacheIdentifier = md5($className.'-'.$address);
 
 		if ($this->requestCache->has($cacheIdentifier)) {
 			$response = $this->requestCache->get($cacheIdentifier);
