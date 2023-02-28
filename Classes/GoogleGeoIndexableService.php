@@ -55,13 +55,13 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 	 */
 	protected function setResultToLocationData(LocationData $locationData, $result): ?LocationData {
 		$geoData = json_decode($result, true);
-		if (!$geoData || !array_key_exists(0, $geoData)) {
+		if (!$geoData || !array_key_exists('status', $geoData) || $geoData['status'] !== 'OK') {
 			return NULL;
 		}
 		$data = $geoData->results[0];
 		$addressData = $this->getAddressDataFromAddressComponents($data->address_components);
 
-		foreach($locationData->getRequiredDetails() as $detailName){
+		foreach($locationData->getRequiredDetails() as $detailName) {
 			switch ($detailName){
 				case LocationDataDetails::LATITUDE:
 					$locationData->setDetail($detailName, $data->geometry->location->lat);
@@ -104,7 +104,7 @@ class GoogleGeoIndexableService extends AbstractGeoIndexingService
 		return $this->browser->request($uri)->getBody()->getContents();
 	}
 
-	protected function getAddressDataFromAddressComponents($components){
+	protected function getAddressDataFromAddressComponents($components) {
 		$address = [];
 		foreach($components as $component){
 			if(in_array('country', $component['types'])){

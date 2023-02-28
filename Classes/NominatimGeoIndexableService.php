@@ -80,7 +80,7 @@ class NominatimGeoIndexableService extends AbstractGeoIndexingService
 			return NULL;
 		}
 		$data = $geoData[0];
-		foreach($locationData->getRequiredDetails() as $detailName){
+		foreach($locationData->getRequiredDetails() as $detailName) {
 			switch ($detailName){
 				case LocationDataDetails::LATITUDE:
 					$locationData->setDetail($detailName, $data['lat']);
